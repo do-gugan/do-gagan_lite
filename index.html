@@ -68,8 +68,15 @@
         background-color: #ccc;        
     }
     span.controlButton{
-        letter-spacing:-0.5em;   
+        letter-spacing:-0.45em;
+        vertical-align: middle;
+        padding-right: 0.3em;
     }
+    /* FireFoxで◀◀／▶▶をletter-spacingで字詰めすると欠けるのでアドホック対応*/
+    _:lang(x)::-moz-placeholder, span.controlButton {
+        letter-spacing:-0.34em;   
+    }
+
     span.shortcut {
         font-size: 70%;
         color:#888;
