@@ -30,6 +30,7 @@
         background-color: #ccc;
         flex-basis:30%;
         overflow-y: scroll;
+        border:1px solid #999;
     }
     div.row {
         display: flex;
@@ -115,16 +116,25 @@
         background-color: #EAD9FF;
     }
 
+    div.current {
+        _border: 3px solid blue;
+        _outline-offset: -14px;
+    }
+    div.current > div.script {
+        background-color: rgb(210, 230, 255);
+    }
+
     @media screen and (max-height: 1000px){
         #ahowto {display:none}
     }
   </style>
   <script src="test.json.js" id="scriptsJson"></script>
   <script>
-
+      var updateCurrentInterval = new Array(); //現在位置更新用タイマー
       function initialize(){
-        const player = document.getElementById("player");
-        isPlaying = false;
+        //グローバル変数
+        const player = document.getElementById("player"); //動画プレーヤー
+        isPlaying = false; //再生中フラグ
 
         //再生状態チェックイベントハンドラー
         player.addEventListener('playing', (event) => {
@@ -193,12 +203,46 @@
         }
     }
     function play(){
+        //console.log("play");
         player.play();
         document.getElementById('payPause').innerHTML = "▶<span class='shortcut'> (Space)</span>";
+
+        //現在位置更新タイマー開始
+        updateCurrentInterval.push(setInterval("updateCurrentMarker();",500)); //0.5秒毎に更新
     }
     function pause(){
+        //console.log("pause");
         player.pause();
         document.getElementById('payPause').innerHTML = "<img src='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAABCAYAAADn9T9+AAAAHElEQVQImWNkYGD4z4AAjP//I7iMjIwQDgMDAwBzGQUBc+dnkwAAAABJRU5ErkJggg=='' id='pause' alt='II' /><span class='shortcut'> (Space)</span>";
+
+        //現在位置更新タイマー停止
+        if (updateCurrentInterval.length > 0) {
+            clearInterval(updateCurrentInterval.shift());
+        }
+    }
+
+    //現在再生位置を強調表示（タイマーで周期的に呼ばれる）
+    function updateCurrentMarker(){
+        current = scriptsJson.find(script => script['in'] >= player.currentTime + 0.1); //タイムコードが追い越すレコードを取得。少し早めに反映（+0.1）
+        current = scriptsJson[scriptsJson.indexOf(current) -1 ]; //そのひとつ手前のレコードを選択
+
+        //強調スタイルをリセット
+        currents = document.getElementsByClassName(['current']); //currentsオブジェクトにはforEachが使えない
+        for (let current of currents) {
+            current.classList.remove('current');
+        }
+
+        //強調スタイルを適用
+        if (current != null){
+            //console.log("now:" + player.currentTime + " in:" + current['in'] + " script:" +current['script']);
+            document.getElementById(current['in']).classList.add("current");
+
+            //リストをスクロール
+            document.getElementById(current['in']).scrollIntoView({behavior: "smooth", block: "center"}); //block: nearestも捨てがたい
+        }
+
+
+        
     }
 
     function skipForward(){
@@ -222,6 +266,7 @@
         sec = secTotal - min*60;
         return ( '00' + min ).slice( -2 ) + ":" + ( '00' + sec ).slice( -2 )
     }
+
 
   </script>
 </head>
