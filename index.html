@@ -30,6 +30,7 @@
         background-color: #ccc;
         flex-basis:30%;
         overflow-y: scroll;
+        border:1px solid #999;
     }
     div.row {
         display: flex;
@@ -129,10 +130,9 @@
   </style>
   <script src="test.json.js" id="scriptsJson"></script>
   <script>
-
+      var updateCurrentInterval = new Array(); //現在位置更新用タイマー
       function initialize(){
         //グローバル変数
-        var updateCurrentInterval = null; //現在位置更新用タイマー
         const player = document.getElementById("player"); //動画プレーヤー
         isPlaying = false; //再生中フラグ
 
@@ -208,7 +208,7 @@
         document.getElementById('payPause').innerHTML = "▶<span class='shortcut'> (Space)</span>";
 
         //現在位置更新タイマー開始
-        updateCurrentInterval = setInterval(updateCurrentMarker,500); //0.5秒毎に更新
+        updateCurrentInterval.push(setInterval("updateCurrentMarker();",500)); //0.5秒毎に更新
     }
     function pause(){
         //console.log("pause");
@@ -216,7 +216,9 @@
         document.getElementById('payPause').innerHTML = "<img src='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAABCAYAAADn9T9+AAAAHElEQVQImWNkYGD4z4AAjP//I7iMjIwQDgMDAwBzGQUBc+dnkwAAAABJRU5ErkJggg=='' id='pause' alt='II' /><span class='shortcut'> (Space)</span>";
 
         //現在位置更新タイマー停止
-        clearInterval(updateCurrentInterval);
+        if (updateCurrentInterval.length > 0) {
+            clearInterval(updateCurrentInterval.shift());
+        }
     }
 
     //現在再生位置を強調表示（タイマーで周期的に呼ばれる）
@@ -234,7 +236,13 @@
         if (current != null){
             //console.log("now:" + player.currentTime + " in:" + current['in'] + " script:" +current['script']);
             document.getElementById(current['in']).classList.add("current");
+
+            //リストをスクロール
+            document.getElementById(current['in']).scrollIntoView({behavior: "smooth", block: "center"}); //block: nearestも捨てがたい
         }
+
+
+        
     }
 
     function skipForward(){
