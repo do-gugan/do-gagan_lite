@@ -90,6 +90,30 @@
         margin-top:5px;
         margin-right:6px;
     }
+    div.speaker0 {
+        background-color: #CCFFCC;
+    }
+    div.speaker1 {
+        background-color: #FFD5EC;
+    }
+    div.speaker2 {
+        background-color: #CCFFCC;
+    }
+    div.speaker3 {
+        background-color: #FFAADD;
+    }
+    div.speaker4 {
+        background-color: #FFFFCC;
+    }
+    div.speaker5 {
+        background-color: #FFDBC9;
+    }
+    div.speaker6 {
+        background-color: #E6FFE9;
+    }
+    div.speaker7 {
+        background-color: #EAD9FF;
+    }
 
     @media screen and (max-height: 1000px){
         #ahowto {display:none}
@@ -154,7 +178,7 @@
         const scriptsJsonSTR = JSON.stringify(scriptsJson)
         var scripts = JSON.parse(scriptsJsonSTR);
         scripts.forEach(scriptRecord => {
-            row = "<div class='row' id='" + scriptRecord["in"] + "' onClick='jumpToTimeIndex(" + scriptRecord["in"] + ")'><div class='in'>" + secToMinSec(scriptRecord["in"]) + "</div><div class='script'>" + scriptRecord["script"] + "</div></div>\n";
+            row = "<div class='row' id='" + scriptRecord["in"] + "' onClick='jumpToTimeIndex(" + scriptRecord["in"] + ")'><div class='in speaker" + scriptRecord["speaker"] + "'>" + secToMinSec(scriptRecord["in"]) + "</div><div class='script'>" + scriptRecord["script"] + "</div></div>\n";
             document.getElementById("scripts").innerHTML += row;
         });
     }
