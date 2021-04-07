@@ -331,9 +331,9 @@
                     matchedScripts = scriptsJson.filter(script => script['script'].includes(word));
                     matchedScripts.forEach(script => document.getElementById(script['in']).classList.add("emphasise"));                    
                     break;
-            }
-            
+            }            
         }
+        document.getElementById('searchWord').focus();
     }
 
     //検索によるスタイルをリセットする
