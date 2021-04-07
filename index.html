@@ -26,11 +26,33 @@
         background-color: #fff;
         flex-basis:70%;
     }
+    div#rightBar {
+        flex-basis:30%;
+    }
+    div#search {
+        padding:0.2em;
+    }
+    select#searchMethod {
+        width:4em;
+    }
+    input#searchWord {
+        width:16.9em;
+    }
+    input[type="search"] {
+        -webkit-appearance: searchfield;
+    }
+    input[type="search"]::-webkit-search-cancel-button {
+        -webkit-appearance: searchfield-cancel-button;
+    }
+
+    input#searchClearButton {
+        border:0x;
+    }
     div#scripts {
         background-color: #ccc;
-        flex-basis:30%;
         overflow-y: scroll;
         border:1px solid #999;
+        height:100%;
     }
     div.row {
         display: flex;
@@ -38,6 +60,15 @@
         margin:0.1em;
         border:1px solid #888;
     }
+    /* 検索にマッチして非表示にする */
+    div.row.hidden {
+        display: none;
+    }
+    /* 検索にマッチして強調する */
+    div.row.emphasise > div.script {
+        background-color: rgb(210, 230, 255);
+    }
+    
     div.in {
         background-color: #cfc;
         text-align:right;
@@ -124,11 +155,8 @@
     }
 
     div.current {
-        _border: 3px solid blue;
-        _outline-offset: -14px;
-    }
-    div.current > div.script {
-        background-color: rgb(210, 230, 255);
+        border: 3px solid blue;        
+        outline-offset: -14px;
     }
 
     @media screen and (max-height: 1000px){
@@ -160,23 +188,35 @@
         document.body.addEventListener('keydown',
         event => {
             //alert(event.key);
-            if (event.key === 'v' && event.ctrlKey) {
-            alert("Ctrl+Vが押されました")
+            if (event.key === 's' && event.altKey) {
+                playToggle();
+                event.preventDefault();
+            } else if (event.key === 'q' && event.altKey) {
+                skipBackward();
+                event.preventDefault();
+            } else if (event.key === 'w' && event.altKey) {
+                skipForward();
+                event.preventDefault();
             } else {
                 //単体キー
-                switch (event.key){
-                    case ' ':
-                        playToggle();
-                        break;
-                    case 'q':
-                        skipBackward();
-                        break;
-                    case 'w':
-                        skipForward();
-                        break;
+                //検索欄にフォーカスがある場合は無視
+                activeElement = document.activeElement;
+                //console.log(activeElement['id']);
+                if (activeElement['id'] != "searchWord"){
+                    switch (event.key){
+                        case ' ':
+                            playToggle();
+                            event.preventDefault();
+                            break;
+                        case 'q':
+                            skipBackward();
+                            break;
+                        case 'w':
+                            skipForward();
+                            break;
+                    }
                 }
-
-            }          
+            }
         });
 
         //スキップボタン内の秒数プルダウンメニューでonClickイベントを破棄
@@ -233,13 +273,13 @@
         current = scriptsJson.find(script => script['in'] >= player.currentTime + 0.1); //タイムコードが追い越すレコードを取得。少し早めに反映（+0.1）
         current = scriptsJson[scriptsJson.indexOf(current) -1 ]; //そのひとつ手前のレコードを選択
 
-        //強調スタイルをリセット
+        //フォーカススタイルをリセット
         currents = document.getElementsByClassName(['current']); //currentsオブジェクトにはforEachが使えない
         for (let current of currents) {
             current.classList.remove('current');
         }
 
-        //強調スタイルを適用
+        //フォーカススタイルを適用
         if (current != null){
             //console.log("now:" + player.currentTime + " in:" + current['in'] + " script:" +current['script']);
             document.getElementById(current['in']).classList.add("current");
@@ -247,9 +287,6 @@
             //リストをスクロール
             document.getElementById(current['in']).scrollIntoView({behavior: "smooth", block: "center"}); //block: nearestも捨てがたい
         }
-
-
-        
     }
 
     function skipForward(){
@@ -262,6 +299,7 @@
     }
     //動画再生位置を指定秒に移動する
     function jumpToTimeIndex(sec){
+        document.getElementById('body').focus();
         //alert(sec); 
         player.currentTime = sec;
         play();
@@ -274,11 +312,45 @@
         return ( '00' + min ).slice( -2 ) + ":" + ( '00' + sec ).slice( -2 )
     }
 
+    //検索機能
+    function searchWordChanged() {
+        word = document.getElementById('searchWord').value;
+        method = document.getElementById('searchMethod').value;
+        resetSearch();
+
+        if (word){
+            //console.log(word + `(${method})`);
+            switch (method){
+                case "filter":
+                    //wordを含まないものを非表示にする
+                    notMatchedScripts = scriptsJson.filter(script => !script['script'].includes(word));
+                    notMatchedScripts.forEach(script => document.getElementById(script['in']).classList.add("hidden"));                    
+                    break;
+                case "emphasise":
+                    //wordを含むものを強調する
+                    matchedScripts = scriptsJson.filter(script => script['script'].includes(word));
+                    matchedScripts.forEach(script => document.getElementById(script['in']).classList.add("emphasise"));                    
+                    break;
+            }
+            
+        }
+    }
+
+    //検索によるスタイルをリセットする
+    function resetSearch() {
+        
+        allRow = document.getElementsByClassName(['row']); //currentsオブジェクトにはforEachが使えない
+        for (let row of allRow) {
+            row.classList.remove('hidden');     //非表示行を復活
+            row.classList.remove('emphasise');  //強調行をリセット
+        }
+    }
+
 
   </script>
 </head>
 
-<body onLoad="initialize();">
+<body onLoad="initialize();" id="body">
     <header></header>
     <div id="flexcontainer">
         <!--動画プレーヤー-->
@@ -328,13 +400,32 @@
                     <li>スペースキーで再生、一時停止切り替え</li>
                     <li>「w」キーで指定秒数進む</li>
                     <li>「q」キーで指定秒数戻る</li>
-                    <li>秒数はプルダウンメニューで指定</li>
+                    <li>検索欄にフォーカスがある場合は上記ショートカットは無効。代わりに、Alt+s,w,qが常時有効。</li>
+                    <li>移動する秒数はプルダウンメニューで指定</li>
+                    <li>語句検索は右上の検索ボックスに単語を入力します。
+                        <ul>
+                            <li>抽出：指定語を含む行のみに絞り込み表示します。</li>
+                            <li>強調：指定語を含む行に色をつけ目立たせます。</li>
+                            <li>現状、複数の単語によるAND/OR検索はできません。</li>
+                            <li>現状、大文字小文字、半角全角は区別されます。</li>
+                        </ul>
+                    </li>
                     <li>動作確認ブラウザ：Microsoft Edge（Chromium版）またはGoogle Chrome</li>
                 </ul>
             </div>        
         </div>
         <!--発話一覧-->
-        <div id="scripts">
+        <div id="rightBar">
+            <div id="search">
+                <select id="searchMethod" onChange="searchWordChanged();" >
+                    <option value="filter">抽出</option>
+                    <option value="emphasise">強調</option>
+                </select>
+                <input type="search" id="searchWord" placeholder="検索語を入力" onInput="searchWordChanged();" onSearch="resetSearch();" />
+                <!--input type="button" id="searchClearButton" onClick="searchWordClear();" value="×" /-->
+            </div>
+            <div id="scripts">
+            </div>   
         </div>
     </div>
 
