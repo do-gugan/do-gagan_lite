@@ -3,7 +3,6 @@
 <html lang="ja">
 <head>
   <meta charset="utf-8">
-
   <title>動画眼Lite</title>
   <style type="text/css">
     body {
@@ -160,12 +159,20 @@
         #ahowto {display:none}
     }
   </style>
-  <script src="test.json.js" id="scriptsJson"></script>
+  <!--script src="" id="scriptsJson"></script-->
   <script>
+      //本HTMLファイルのファイル名と同名のjson.jsファイルを読み込む
+      var filename = window.location.href.split('/').pop().replace('.html','').replace('.HTML','').replace('.htm','').replace('.HTML','')
+      var scriptElement = document.createElement("script");
+      scriptElement.src = filename+".json.js";
+      document.head.appendChild(scriptElement);
+
       var updateCurrentInterval = new Array(); //現在位置更新用タイマー
+
       function initialize(){
         //グローバル変数
         const player = document.getElementById("player"); //動画プレーヤー
+        player.setAttribute('src',filename + '.mp4')
         isPlaying = false; //再生中フラグ
 
         //再生状態チェックイベントハンドラー
@@ -179,7 +186,6 @@
             isPlaying = false;
             pause();
         });
-
 
         //キーボードショートカットのリスナーをセット
         document.body.addEventListener('keydown',
@@ -352,10 +358,7 @@
     <div id="flexcontainer">
         <!--動画プレーヤー-->
         <div id="playerContainer">
-            <video controls width="100%" id="player">
-                <source src="test.mp4" type="video/mp4">   
-                お使いのブラウザはビデオ再生に対応していません。
-            </video>
+            <video controls width="100%" id="player"></video>
             <div id="controls">
                 <div class="controlButton" id="backword" onclick="skipBackward();">
                     <span class="controlButton">◀◀</span> <span class="shortcut">(Q)</span>
@@ -426,6 +429,6 @@
         </div>
     </div>
 
-<footer>動画眼Lite by do-gugan.com</footer>
+<footer>動画眼Lite Ver 0.9 by do-gugan.com</footer>
 </body>
 </html>
