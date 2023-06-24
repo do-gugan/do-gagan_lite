@@ -149,12 +149,17 @@
     div.speaker7 {
         background-color: #EAD9FF;
     }
-
+    div#stopWatch {
+        margin-left: 1em;
+    }
     div.current {
         border: 3px solid blue;        
         outline-offset: -14px;
     }
-
+    span.copied {
+        color: rgb(63, 63, 145);
+        font-size:0.8em;
+    }
     @media screen and (max-height: 1000px){
         #ahowto {display:none}
     }
@@ -162,12 +167,14 @@
   <!--script src="" id="scriptsJson"></script-->
   <script>
       //本HTMLファイルのファイル名と同名のjson.jsファイルを読み込む
-      var filename = window.location.href.split('/').pop().replace('.html','').replace('.HTML','').replace('.htm','').replace('.HTML','')
-      var scriptElement = document.createElement("script");
+      const filename = window.location.href.split('/').pop().replace('.html','').replace('.HTML','').replace('.htm','').replace('.HTML','')
+      const scriptElement = document.createElement("script");
       scriptElement.src = filename+".json.js";
       document.head.appendChild(scriptElement);
 
-      var updateCurrentInterval = new Array(); //現在位置更新用タイマー
+      let updateCurrentInterval = new Array(); //現在位置更新用タイマー
+      let stopWatchTimer; //ストップウォッチ用タイマーハンドラー
+      let stopWatchStart = 0;
 
       function initialize(){
         //グローバル変数
@@ -216,6 +223,9 @@
                             break;
                         case 'w':
                             skipForward();
+                            break;
+                        case 't':
+                            doStopWatch();
                             break;
                     }
                 }
@@ -349,7 +359,28 @@
         }
     }
 
-
+    //ストップウォッチ機能
+    function doStopWatch() {
+        const swButtonLabel = document.getElementById("stopWatchState");
+        if (swButtonLabel.innerText == "時間計測" || swButtonLabel.innerText.includes("copied")) {
+            //開始
+            play();
+            stopWatchStart = player.currentTime;
+            stopWatchTimer = setInterval(updateStopWatch, 100);            
+        } else {
+            //停止
+            clearInterval(stopWatchTimer);
+            return navigator.clipboard.writeText(swButtonLabel.innerHTML.replace("sec","")).then(function () {
+                swButtonLabel.innerHTML += "<span class=\"copied\"> (copied)</span>";
+            }) 
+        }
+    }
+    //100ms毎にストップウォッチ表示を更新する
+    function updateStopWatch() {
+        let curent = (player.currentTime - stopWatchStart).toFixed(1);
+        document.getElementById("stopWatchState").innerText = curent+"sec";
+    }
+          
   </script>
 </head>
 
@@ -392,14 +423,16 @@
                     </select>
                     <span class="shortcut">(W)</span> <span class="controlButton">▶▶</span>
                 </div>
+                <div class="controlButton" id="stopWatch" onClick="doStopWatch();">
+                    <span id="stopWatchState">時間計測</span> <span class="shortcut">(T)</span>
+                </div>
             </div>
             <div id="howto">
                 <h1>■使い方</h1>
                 <ul>
                     <li>右の発話リストから聞きたい発話をクリックすると当該箇所が再生されます。</li>
                     <li>スペースキーで再生、一時停止切り替え</li>
-                    <li>「w」キーで指定秒数進む</li>
-                    <li>「q」キーで指定秒数戻る</li>
+                    <li>「w」キーで指定秒数進む、「q」キーで戻る</li>
                     <li>検索欄にフォーカスがある場合は上記ショートカットは無効。代わりに、Alt+s,w,qが常時有効。</li>
                     <li>移動する秒数はプルダウンメニューで指定</li>
                     <li>語句検索は右上の検索ボックスに単語を入力します。
@@ -410,7 +443,8 @@
                             <li>現状、大文字小文字、半角全角は区別されます。</li>
                         </ul>
                     </li>
-                    <li>動作確認ブラウザ：Microsoft Edge（Chromium版）またはGoogle Chrome</li>
+                    <li>動作確認ブラウザ：Microsoft EdgeまたはGoogle Chrome</li>
+                    <li>「T」キーで簡易ストップウォッチ。停止後、計測値をクリップボードに格納。<span style="color:red">[NEW!]</span></li>
                 </ul>
             </div>        
         </div>
@@ -430,7 +464,7 @@
     </div>
 <!--本ファイルは道具眼によりMITライセンスで開発、公開されています。商用、非商用を問わず無償でご利用いただけます。-->
 <!--改変、再頒布も可能ですが、下記著作権表記及びライセンス文は削除、修正できません。-->
-<footer><a href="https://do-gugan.com/tools/do-gagan2/lite.html">動画眼Lite</a> Ver 1.0 by do-gugan.com</footer>
+<footer><a href="https://do-gugan.com/tools/do-gagan2/lite.html">動画眼Lite</a> Ver 1.2 by do-gugan.com</footer>
 <!--
 MIT License
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
