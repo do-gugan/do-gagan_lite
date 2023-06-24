@@ -108,6 +108,9 @@
         font-size: 70%;
         color:#888;
     }
+    div#autoscrollBox {
+        padding: 0.5em;
+    }
     div#howto {
         padding-left:3em;
         height:20em;
@@ -175,6 +178,7 @@
       let updateCurrentInterval = new Array(); //現在位置更新用タイマー
       let stopWatchTimer; //ストップウォッチ用タイマーハンドラー
       let stopWatchStart = 0;
+      let scrollObserver;
 
       function initialize(){
         //グローバル変数
@@ -240,7 +244,20 @@
             e.stopPropagation()}, false
         )
 
+        //スクロール監視オブジェクトを作成 (青枠セルが画面外に出たら自動スクロールを止める)
+        scrollObserver = new IntersectionObserver(disableAutoScroll);
+
         loadJson();
+    }
+
+    function disableAutoScroll(entries) {
+        entries.forEach(entry => {
+            if (entry.isIntersecting == false) {
+                //フォーカス（青枠）のついたセルが画面外にスクロールアウトしたら、自動スクロールをOFF
+                document.getElementById("autoscroll").checked = false;
+            }
+        })
+
     }
 
     //JSONデータをもつjsファイルを読み込み、リストに表示する
@@ -248,7 +265,7 @@
         const scriptsJsonSTR = JSON.stringify(scriptsJson)
         var scripts = JSON.parse(scriptsJsonSTR);
         scripts.forEach(scriptRecord => {
-            row = "<div class='row' id='" + scriptRecord["in"] + "' onClick='jumpToTimeIndex(" + scriptRecord["in"] + ")'><div class='in speaker" + scriptRecord["speaker"] + "'>" + secToMinSec(scriptRecord["in"]) + "</div><div class='script'>" + scriptRecord["script"] + "</div></div>\n";
+            row = "<div class='row' id='cell" + scriptRecord["in"] + "' onClick='jumpToTimeIndex(" + scriptRecord["in"] + ")'><div class='in speaker" + scriptRecord["speaker"] + "'>" + secToMinSec(scriptRecord["in"]) + "</div><div class='script'>" + scriptRecord["script"] + "</div></div>\n";
             document.getElementById("scripts").innerHTML += row;
         });
     }
@@ -283,6 +300,7 @@
 
     //現在再生位置を強調表示（タイマーで周期的に呼ばれる）
     function updateCurrentMarker(){
+        //自動スクロール有効時
         current = scriptsJson.find(script => script['in'] >= player.currentTime + 0.1); //タイムコードが追い越すレコードを取得。少し早めに反映（+0.1）
         current = scriptsJson[scriptsJson.indexOf(current) -1 ]; //そのひとつ手前のレコードを選択
 
@@ -290,15 +308,20 @@
         currents = document.getElementsByClassName(['current']); //currentsオブジェクトにはforEachが使えない
         for (let current of currents) {
             current.classList.remove('current');
+            scrollObserver.unobserve(current);
         }
 
         //フォーカススタイルを適用
         if (current != null){
             //console.log("now:" + player.currentTime + " in:" + current['in'] + " script:" +current['script']);
-            document.getElementById(current['in']).classList.add("current");
+            const curDiv = document.getElementById(`cell${current['in']}`);
+            curDiv.classList.add("current");
+            scrollObserver.observe(curDiv);
+        }
 
-            //リストをスクロール
-            document.getElementById(current['in']).scrollIntoView({behavior: "smooth", block: "center"}); //block: nearestも捨てがたい
+        //リストをスクロール
+        if (document.getElementById("autoscroll").checked == true) {
+            document.getElementById(`cell${current['in']}`).scrollIntoView({behavior: "auto", block: "nearest"}); //block: nearestも捨てがたい
         }
     }
 
@@ -332,17 +355,21 @@
         resetSearch();
 
         if (word){
-            //console.log(word + `(${method})`);
+            console.log(word + `(${method})`);
             switch (method){
                 case "filter":
                     //wordを含まないものを非表示にする
                     notMatchedScripts = scriptsJson.filter(script => !script['script'].includes(word));
-                    notMatchedScripts.forEach(script => document.getElementById(script['in']).classList.add("hidden"));                    
+                    //タイムコードが重複しているとidも被るので、querySelectorAllで全て指定（余計なものまで消える可能性?）
+                    notMatchedScripts.forEach(script => {
+                        const notMatchedCells = document.querySelectorAll(`#cell${script['in']}`);
+                        notMatchedCells.forEach(cell => cell.classList.add("hidden"));
+                    });
                     break;
                 case "emphasise":
                     //wordを含むものを強調する
                     matchedScripts = scriptsJson.filter(script => script['script'].includes(word));
-                    matchedScripts.forEach(script => document.getElementById(script['in']).classList.add("emphasise"));                    
+                    matchedScripts.forEach(script => document.getElementById(`cell${script['in']}`).classList.add("emphasise"));                    
                     break;
             }            
         }
@@ -426,6 +453,7 @@
                 <div class="controlButton" id="stopWatch" onClick="doStopWatch();">
                     <span id="stopWatchState">時間計測</span> <span class="shortcut">(T)</span>
                 </div>
+                <div id="autoscrollBox"><label for="autoscroll"><input type="checkbox" id="autoscroll" checked />自動スクロール</label></div>
             </div>
             <div id="howto">
                 <h1>■使い方</h1>
