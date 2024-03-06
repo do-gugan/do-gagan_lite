@@ -11,18 +11,22 @@
         background-color: #fff;
     }
     div#flexcontainer {
-        max-width:90%;
+        max-width: 90%;
         background-color: #ddd;
         display: flex;
         flex-flow: row nowrap;
         justify-content: space-around ;
-        height:85vh;
+        height: 94vh;
     }
     div#playerContainer {
         background-color: #fff;
         flex-basis:70%;
 
         position:relative;
+
+        /* 下位コンテナの縦配置のため */
+        display: flex;
+        flex-direction: column;
     }
     div#player_status_text {
         position: absolute;
@@ -56,9 +60,11 @@
     }
     input[type="search"] {
         -webkit-appearance: searchfield;
+        appearance: searchfield;
     }
     input[type="search"]::-webkit-search-cancel-button {
         -webkit-appearance: searchfield-cancel-button;
+        appearance: searchfield-cancel-button;
     }
 
     input#searchClearButton {
@@ -68,7 +74,7 @@
         background-color: #ccc;
         overflow-y: scroll;
         border:1px solid #999;
-        height:100%;
+        height:97%;
     }
     div.row {
         display: flex;
@@ -104,7 +110,7 @@
         justify-content: center;
 
         height: 42px;
-    }
+     }
     div.controlButton{
         border: 1px solid #333;
         background-color: #aaa;
@@ -138,8 +144,9 @@
         padding: 0.5em;
     }
     div#howto {
-        padding-left:3em;
-        height:20em;
+        bottom: 3em;
+        padding-left: 3em;
+        overflow: auto;
     }
     footer {
         color:#777;
@@ -696,7 +703,7 @@ function displayPlayerStatusForAWhile(message="", icon="", sec=0) {
     </div>
 <!--本ファイルは道具眼によりMITライセンスで開発、公開されています。商用、非商用を問わず無償でご利用いただけます。-->
 <!--改変、再頒布も可能ですが、下記著作権表記及びライセンス文は削除、修正できません。-->
-<footer><a href="https://do-gugan.com/tools/do-gagan3/lite.html">動画眼Lite</a> Ver 1.3.1 by do-gugan.com</footer>
+<footer><a href="https://do-gugan.com/tools/do-gagan3/lite.html">動画眼Lite</a> Ver 1.3.2 by do-gugan.com</footer>
 <!--
 MIT License
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
