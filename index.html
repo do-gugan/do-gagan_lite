@@ -330,9 +330,21 @@
     function loadJson(){
         const scriptsJsonSTR = JSON.stringify(scriptsJson)
         var scripts = JSON.parse(scriptsJsonSTR);
+
+        //テンプレートを作成
+        const rowTemplate = document.createElement('div');
+        rowTemplate.classList.add('row');
+        rowTemplate.innerHTML = "<div class='in'></div><div class='script'></div>";
+
         scripts.forEach(scriptRecord => {
-            row = "<div class='row' id='cell" + scriptRecord["in"] + "' onClick='jumpToTimeIndex(" + scriptRecord["in"] + ")'><div class='in speaker" + scriptRecord["speaker"] + "'>" + secToMinSec(scriptRecord["in"]) + "</div><div class='script'>" + scriptRecord["script"] + "</div></div>\n";
-            document.getElementById("scripts").innerHTML += row;
+            const row = rowTemplate.cloneNode(true);
+            row.id = "cell" + scriptRecord["in"];
+            row.addEventListener('click', () => jumpToTimeIndex(scriptRecord['in']));
+            row.querySelector('.in').classList.add('speaker' + scriptRecord['speaker']);
+            row.querySelector('.in').textContent = secToMinSec(scriptRecord['in']);
+            row.querySelector('.script').textContent = scriptRecord['script'];
+
+            document.getElementById("scripts").appendChild(row);
         });
     }
 
@@ -403,7 +415,7 @@
     * @param (string) icon 表示するアイコン名
     */
     function displayPlayerStatus(message,icon) {
-        console.log(message + " " + icon);
+        //console.log(message + " " + icon);
         //タイマーをクリア
         clearTimeout(statusDisplayTimer);
         let iconText = "";
@@ -534,7 +546,7 @@ function displayPlayerStatusForAWhile(message="", icon="", sec=0) {
         resetSearch();
 
         if (word){
-            console.log(word + `(${method})`);
+            //console.log(word + `(${method})`);
             switch (method){
                 case "filter":
                     //wordを含まないものを非表示にする
@@ -576,8 +588,8 @@ function displayPlayerStatusForAWhile(message="", icon="", sec=0) {
         } else {
             //停止
             clearInterval(stopWatchTimer);
-            return navigator.clipboard.writeText(swButtonLabel.innerHTML.replace("sec","")).then(function () {
-                swButtonLabel.innerHTML += "<span class=\"copied\"> (copied)</span>";
+            return navigator.clipboard.writeText(swButtonLabel.innerText.replace("sec","")).then(function () {
+                swButtonLabel.insertAdjacentHTML('beforeend', "<span class=\"copied\"> (copied)</span>");
             }) 
         }
     }
@@ -684,7 +696,7 @@ function displayPlayerStatusForAWhile(message="", icon="", sec=0) {
     </div>
 <!--本ファイルは道具眼によりMITライセンスで開発、公開されています。商用、非商用を問わず無償でご利用いただけます。-->
 <!--改変、再頒布も可能ですが、下記著作権表記及びライセンス文は削除、修正できません。-->
-<footer><a href="https://do-gugan.com/tools/do-gagan3/lite.html">動画眼Lite</a> Ver 1.3 by do-gugan.com</footer>
+<footer><a href="https://do-gugan.com/tools/do-gagan3/lite.html">動画眼Lite</a> Ver 1.3.1 by do-gugan.com</footer>
 <!--
 MIT License
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
